@@ -469,6 +469,101 @@ public class Program
 
     public static void UpdateActor()
     {
+        SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder();
 
+        builder.DataSource = "localhost,1433";
+        builder.InitialCatalog = "MoviesAndActorsDB";
+        builder.TrustServerCertificate = true;
+        builder.UserID = "SA";
+        builder.Password = "Qwerty123!";
+
+        string connectionString = builder.ConnectionString;
+
+        SqlConnection conn = new SqlConnection(connectionString);
+
+        string sql1 = "Select * from actortable";
+        conn.Open();
+
+        var cmd = new SqlCommand(sql1, conn);
+
+        var reader = cmd.ExecuteReader();
+
+        while (reader.Read())
+        {
+            Console.WriteLine($"{reader["actor_id"]} || {reader["actor_name"]} || {reader["actor_gender"]}");
+
+        }
+
+        reader.Close();
+        conn.Close();
+
+
+        int actorId;
+        string actorName;
+        string actorGender;
+
+        Console.WriteLine("Enter the ID of the actor you would like to update");
+        if (!int.TryParse(Console.ReadLine(), out actorId))
+        {
+            Console.WriteLine("Please enter a valid actor ID");
+            return;
+        }
+
+        Console.WriteLine("Enter the new actor name (Leave blank to keep current actor name):");
+        actorName = Console.ReadLine();
+
+        Console.WriteLine("Enter the new actor gender (Leave blank to keep current actor gender):");
+        actorGender = Console.ReadLine();
+
+        using (SqlConnection conn2 = new SqlConnection(connectionString))
+        {
+            conn2.Open();
+
+            List<string> updates = new List<string>();
+
+            if (!string.IsNullOrEmpty(actorName))
+            {
+                updates.Add("actor_name = @ActorName");
+            }
+
+            if (!string.IsNullOrEmpty(actorGender))
+            {
+                updates.Add("actor_gender = @ActorGender");
+            }
+
+            if (updates.Count == 0)
+            {
+                Console.WriteLine("No fields to update");
+                return;
+            }
+
+            string sqlUpdate = $"UPDATE actortable SET {string .Join(", ", updates)} WHERE actor_id = @ActorID";
+
+            using (SqlCommand update = new SqlCommand(sqlUpdate, conn2))
+            {
+                update.Parameters.AddWithValue("@ActorID", actorId);
+
+                if(!string.IsNullOrEmpty(actorName))
+                {
+                    update.Parameters.AddWithValue("@ActorName", actorName);
+                }
+                if(!string.IsNullOrEmpty(actorGender))
+                {
+                    update.Parameters.AddWithValue("@ActorGender",actorGender);
+                }
+                int rowsAffected = update.ExecuteNonQuery();
+                if (rowsAffected > 0)
+                {
+                    Console.WriteLine("Actor updated successfully.");
+                }
+                else
+                {
+                    Console.WriteLine("No actor found with the given ID.");
+                }
+            }
+            conn2.Close();
+
+
+        }
     }
 }
