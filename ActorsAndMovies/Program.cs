@@ -19,7 +19,7 @@ public class Program
                     Update();
                     break;
                 case "4":
-                    Console.WriteLine("Delete a record");
+                    Delete();
                     break;
                 case "5":
                     inLoop = false;
@@ -565,5 +565,151 @@ public class Program
 
 
         }
+    }
+
+    public static void Delete()
+    {
+        bool checker = true;
+
+        while (checker)
+        {
+            switch (InternalMenu())
+            {
+                case "1":
+                    //Console.WriteLine("Movies");
+                    DeleteMovie();
+                    break;
+                case "2":
+                    //Console.WriteLine("Actors");
+                    DeleteActor();
+                    break;
+                case "3":
+                    Console.WriteLine("Exit");
+                    checker = false;
+                    break;
+                default:
+                    Console.WriteLine("Enter valid input");
+                    break;
+            }
+        }
+    }
+
+    public static void DeleteMovie()
+    {
+        SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder();
+
+        builder.DataSource = "localhost,1433";
+        builder.InitialCatalog = "MoviesAndActorsDB";
+        builder.TrustServerCertificate = true;
+        builder.UserID = "SA";
+        builder.Password = "Qwerty123!";
+
+        string connectionString = builder.ConnectionString;
+
+        SqlConnection conn = new SqlConnection(connectionString);
+
+        string sql1 = "Select * from movietable";
+        conn.Open();
+
+        var cmd = new SqlCommand(sql1, conn);
+
+        var reader = cmd.ExecuteReader();
+
+        while (reader.Read())
+        {
+            Console.WriteLine($"{reader["movie_id"]} || {reader["movie_title"]} || {reader["movie_genre"]} || {reader["movie_release_year"]} || {reader["movie_rating"]}");
+
+        }
+
+        reader.Close();
+        conn.Close();
+
+        int movieID;
+
+        Console.WriteLine("Please enter Movie ID you want to delete");
+        if(!int.TryParse(Console.ReadLine(), out movieID))
+        {
+            Console.WriteLine("Enter valid ID");
+            return;
+        }
+
+        conn.Open();
+        string sqlDelete = "DELETE FROM movietable WHERE movie_id = @MovieID";
+
+        using (SqlCommand delete = new SqlCommand(sqlDelete, conn))
+        {
+            delete.Parameters.AddWithValue("@MovieID", movieID);
+
+            int rowsAffected = delete.ExecuteNonQuery();
+            if(rowsAffected > 0)
+            {
+                Console.WriteLine("Movie deleted successfully");
+            }
+            else
+            {
+                Console.WriteLine("No movie found with that ID");
+            }
+        }
+            
+    }
+
+    public static void DeleteActor()
+    {
+        SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder();
+
+        builder.DataSource = "localhost,1433";
+        builder.InitialCatalog = "MoviesAndActorsDB";
+        builder.TrustServerCertificate = true;
+        builder.UserID = "SA";
+        builder.Password = "Qwerty123!";
+
+        string connectionString = builder.ConnectionString;
+
+        SqlConnection conn = new SqlConnection(connectionString);
+
+        string sql1 = "Select * from actortable";
+        conn.Open();
+
+        var cmd = new SqlCommand(sql1, conn);
+
+        var reader = cmd.ExecuteReader();
+
+        while (reader.Read())
+        {
+            Console.WriteLine($"{reader["actor_id"]} || {reader["actor_name"]} || {reader["actor_gender"]}");
+
+        }
+
+        reader.Close();
+        conn.Close();
+
+        int actorID;
+
+        Console.WriteLine("Enter actor ID you want to delete");
+        if(!int.TryParse(Console.ReadLine(), out actorID))
+        {
+            Console.WriteLine("Enter valid ID");
+            return;
+        }
+
+        conn.Open();
+        string sqlDelete = "DELETE FROM actortable WHERE actor_id = @ActorID";
+
+        using (SqlCommand delete = new SqlCommand(sqlDelete, conn))
+        {
+            delete.Parameters.AddWithValue("ActorID", actorID);
+            int rowsAffected = delete.ExecuteNonQuery();
+
+            if(rowsAffected > 0)
+            {
+                Console.WriteLine("Actor deleted successfully");
+            }
+            else
+            {
+                Console.WriteLine("No actor found with that ID");
+            }
+
+        }
+        conn.Close();
     }
 }
